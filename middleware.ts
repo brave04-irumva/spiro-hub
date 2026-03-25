@@ -34,26 +34,41 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  // Use getUser() as it is more secure for middleware than getSession()
+  // Securely check for the user
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLoginPage = request.nextUrl.pathname.startsWith("/login");
+  const pathname = request.nextUrl.pathname;
+  const isLoginPage = pathname.startsWith("/login");
 
-  // RULE 1: If no user and not on login, go to login
+  // RULE 1: If no user and trying to access a protected page, force login
   if (!user && !isLoginPage) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
-  // RULE 2: If logged in and trying to go to login, go to dashboard
+  // RULE 2: If logged in and trying to go to login, send to dashboard
   if (user && isLoginPage) {
-    return NextResponse.redirect(new URL("/", request.url));
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
   }
 
   return response;
 }
 
+// Updated matcher to explicitly protect your new features
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - api (API routes - we handle auth inside the route for AT)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|api).*)",
+  ],
 };
