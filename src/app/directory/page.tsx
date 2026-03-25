@@ -5,7 +5,6 @@ import { calculateVisaStatus } from "@/lib/visa-logic";
 import { useRole } from "@/hooks/useRole";
 import {
   Search,
-  Download,
   UserCircle,
   Phone,
   Mail,
@@ -48,11 +47,51 @@ export default function DirectoryPage() {
     setLoading(false);
   };
 
+  // --- CSV EXPORT LOGIC ---
+  const exportToCSV = () => {
+    const headers = [
+      "Full Name",
+      "Admission No",
+      "Email",
+      "Phone",
+      "Nationality",
+      "Visa Type",
+      "Current Status",
+      "Expiry Date",
+      "Penalty (KES)",
+    ];
+
+    const rows = filtered.map((s) => [
+      `"${s.full_name}"`,
+      `"${s.student_id_number}"`,
+      `"${s.email}"`,
+      `"${s.phone_number || "N/A"}"`,
+      `"${s.nationality}"`,
+      `"${s.visa?.visa_type || "N/A"}"`,
+      `"${s.statusInfo?.status || "N/A"}"`,
+      `"${s.visa?.expiry_date || "N/A"}"`,
+      s.statusInfo?.penalty || 0,
+    ]);
+
+    const csvContent = [headers, ...rows].map((e) => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `SPIRO_Master_Report_${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleDelete = async (id: string) => {
     if (!isAdmin) return;
     if (
       !confirm(
-        "Are you sure? This will permanently remove the student and all associated records.",
+        "Are you sure? This will permanently remove the student and all records.",
       )
     )
       return;
@@ -79,56 +118,19 @@ export default function DirectoryPage() {
     setFiltered(results);
   }, [searchTerm, data]);
 
-  const exportToCSV = () => {
-    const headers = [
-      "Full Name",
-      "Admission No",
-      "Email",
-      "Phone",
-      "Nationality",
-      "Visa Type",
-      "Current Status",
-      "Expiry Date",
-      "Penalty (KES)",
-    ];
-    const rows = filtered.map((s) => [
-      `"${s.full_name}"`,
-      `"${s.student_id_number}"`,
-      `"${s.email}"`,
-      `"${s.phone_number || "N/A"}"`,
-      `"${s.nationality}"`,
-      `"${s.visa?.visa_type || "N/A"}"`,
-      `"${s.statusInfo?.status || "N/A"}"`,
-      `"${s.visa?.expiry_date || "N/A"}"`,
-      s.statusInfo?.penalty || 0,
-    ]);
-    const csvContent = [headers, ...rows].map((e) => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `SPIRO_Master_Report_${new Date().toISOString().split("T")[0]}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   if (loading)
     return (
-      <div className="p-20 text-center font-black text-blue-900 uppercase tracking-widest">
+      <div className="p-20 text-center font-black text-blue-900 uppercase tracking-widest animate-pulse">
         Compiling Master Directory...
       </div>
     );
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="p-8 max-w-[1600px] mx-auto min-h-screen pb-20">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
         <div>
           <h1 className="text-4xl font-black text-blue-900 flex items-center gap-3">
-            <UserCircle size={40} className="text-blue-600" /> Student Directory
+            <UserCircle size={40} className="text-blue-600" /> Master Directory
           </h1>
           <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.3em] mt-2">
             Database Access:{" "}
@@ -137,15 +139,22 @@ export default function DirectoryPage() {
             </span>
           </p>
         </div>
+
+        {/* THE EXPORT BUTTON */}
         <button
           onClick={exportToCSV}
-          className="flex items-center gap-3 bg-green-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition shadow-xl shadow-green-100"
+          className="flex items-center gap-3 bg-green-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition shadow-xl shadow-green-100 group"
         >
-          <FileSpreadsheet size={20} /> Export Master List (.CSV)
+          <FileSpreadsheet
+            size={20}
+            className="group-hover:rotate-12 transition-transform"
+          />
+          Export Master List (.CSV)
         </button>
       </header>
 
       <div className="bg-white rounded-[3rem] shadow-xl border border-gray-100 overflow-hidden">
+        {/* SEARCH BAR SECTION */}
         <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex gap-4">
           <div className="flex-1 relative">
             <Search
@@ -154,7 +163,7 @@ export default function DirectoryPage() {
             />
             <input
               type="text"
-              placeholder="Search master records..."
+              placeholder="Filter by name or admission number..."
               className="w-full pl-16 pr-6 py-5 rounded-2xl border-none shadow-inner focus:ring-2 focus:ring-blue-500 outline-none font-bold bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -168,6 +177,7 @@ export default function DirectoryPage() {
           </button>
         </div>
 
+        {/* DATA TABLE */}
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/50">
@@ -187,9 +197,9 @@ export default function DirectoryPage() {
                     <p className="font-black text-blue-900 text-lg leading-tight">
                       {s.full_name}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Globe size={12} className="text-gray-300" />
-                      <span className="text-[10px] font-black text-gray-400 uppercase">
+                    <div className="flex items-center gap-2 mt-1 text-gray-400">
+                      <Globe size={12} />
+                      <span className="text-[10px] font-black uppercase">
                         {s.nationality}
                       </span>
                     </div>
@@ -225,7 +235,13 @@ export default function DirectoryPage() {
                   </td>
                   <td className="p-7">
                     <span
-                      className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase ${s.statusInfo?.status === "Expired" ? "bg-red-100 text-red-600" : s.statusInfo?.status === "Expiring Soon" ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"}`}
+                      className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase ${
+                        s.statusInfo?.status === "Expired"
+                          ? "bg-red-100 text-red-600"
+                          : s.statusInfo?.status === "Expiring Soon"
+                            ? "bg-orange-100 text-orange-600"
+                            : "bg-green-100 text-green-600"
+                      }`}
                     >
                       {s.statusInfo?.status || "PENDING"}
                     </span>
@@ -233,14 +249,14 @@ export default function DirectoryPage() {
                   <td className="p-7 text-right flex gap-2 justify-end">
                     <Link
                       href={`/student/${s.id}`}
-                      className="bg-gray-100 p-3 rounded-xl inline-block hover:bg-blue-600 hover:text-white transition"
+                      className="bg-gray-100 p-3 rounded-xl inline-block hover:bg-blue-600 hover:text-white transition shadow-sm"
                     >
                       <ChevronRight size={18} />
                     </Link>
                     {isAdmin && (
                       <button
                         onClick={() => handleDelete(s.id)}
-                        className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition"
+                        className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition shadow-sm"
                       >
                         <Trash2 size={18} />
                       </button>
