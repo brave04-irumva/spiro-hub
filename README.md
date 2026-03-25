@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SPIRO Hub: Student Visa & Compliance Tracker
 
-## Getting Started
+A specialized Management Information System (MIS) designed for the **Student Placement & International Relations Office (SPIRO)** at **Daystar University**. This platform automates the tracking of international student immigration documents, visa expiries, and institutional compliance.
 
-First, run the development server:
+## 🚀 Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Smart Compliance Engine
+
+- **Visa Expiry Tracking:** Real-time calculation of remaining days with visual status flagging (Active, Expiring Soon, Expired).
+- **Automated Penalty Calculation:** Dynamically calculates overstay penalties based on university-defined daily rates.
+- **Intelligent Document Checklist:** Tracks 8-point mandatory immigration requirements with individual document expiry monitoring (e.g., Police Clearance).
+
+### 2. Communication Hub
+
+- **Africa's Talking SMS Integration:** Direct SMS dispatching to students for urgent compliance alerts.
+- **Outlook Integration:** Pre-formatted email templates for professional staff-to-student communication.
+
+### 3. Security & Governance
+
+- **Hybrid Authentication:** Secure staff login powered by Supabase Auth with modern SSR middleware protection.
+- **Role-Based Access Control (RBAC):** Tiered permissions for 'Admins' (System configuration & Deletion) and 'Officers' (Data entry & Monitoring).
+- **Audit Trail:** Comprehensive historical logging of all status changes for institutional accountability.
+
+### 4. Data Management
+
+- **Analytics Dashboard:** Visual distribution of student nationalities and compliance rates.
+- **Master Directory:** Centralized student database with advanced search and CSV export capabilities for university reporting.
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 15+ (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Backend/Database:** Supabase (PostgreSQL)
+- **Authentication:** Supabase Auth (SSR Client)
+- **SMS Gateway:** Africa's Talking API
+- **Icons:** Lucide React
+
+## ⚙️ Environment Setup
+
+Create a `.env.local` file in the root directory and populate it with the following:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Africa's Talking Configuration
+AT_USERNAME=sandbox_or_live_username
+AT_API_KEY=your_at_api_key
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
