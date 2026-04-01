@@ -20,19 +20,23 @@ export default function Sidebar() {
 
   useEffect(() => {
     async function getAlertCount() {
-      // Fetching fresh visa data to update the badge dynamically
-      const { data } = await supabase
-        .from("visa_records")
-        .select("expiry_date");
+      const [{ data: visaData }, { data: settings }] = await Promise.all([
+        supabase.from("visa_records").select("expiry_date"),
+        supabase
+          .from("app_settings")
+          .select("alert_threshold_days")
+          .single(),
+      ]);
 
-      if (data) {
+      if (visaData) {
+        const threshold = settings?.alert_threshold_days || 90;
         const today = new Date();
-        const count = data.filter((v) => {
+        const count = visaData.filter((v) => {
           if (!v.expiry_date) return true; // Flag as alert if date is missing
           const expiry = new Date(v.expiry_date);
           const diff =
             (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-          return diff <= 90; // Flag if expired or expiring within 3 months
+          return diff <= threshold;
         }).length;
         setAlertCount(count);
       }
@@ -51,7 +55,7 @@ export default function Sidebar() {
       icon: BellRing,
       badge: alertCount,
     },
-    { name: "Student Directory", href: "/students", icon: UserCircle }, // Updated path to match new route
+    { name: "Student Directory", href: "/directory", icon: UserCircle },
     { name: "Statistics", href: "/statistics", icon: BarChart3 }, // Updated path to match new route
     { name: "Bulk Import", href: "/upload", icon: Upload },
     { name: "System Settings", href: "/settings", icon: Settings },

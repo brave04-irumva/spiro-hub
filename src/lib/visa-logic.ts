@@ -1,6 +1,7 @@
 export const calculateVisaStatus = (
   expiryDate: string,
   penaltyRate: number = 500,
+  alertThresholdDays: number = 90,
 ) => {
   // Safety check: if date is empty, return null immediately
   if (!expiryDate) return null;
@@ -19,7 +20,7 @@ export const calculateVisaStatus = (
     status = "Expired";
     color = "text-red-600 font-bold";
     penalty = Math.abs(diffDays) * penaltyRate;
-  } else if (diffDays <= 90) {
+  } else if (diffDays <= alertThresholdDays) {
     status = "Expiring Soon";
     color = "text-orange-500 font-medium";
   }
