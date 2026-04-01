@@ -25,18 +25,13 @@ order by ordinal_position;
 -- ---------------------------------------------------------------------
 -- Step C: Paste your two user IDs here
 -- ---------------------------------------------------------------------
--- Replace the values below with real UUIDs from Supabase Auth users.
--- Example:
---   ADMIN_USER_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
---   END_USER_ID   = 'ffffffff-1111-2222-3333-444444444444'
-
--- NOTE: SQL editor doesn't support variables in plain SQL consistently,
--- so we use CTE constants:
+-- Admin UID:    e4f20a2f-98a1-4e78-af3b-0cace1d19122
+-- End-user UID: f4bbb701-d5ae-42dd-9fb9-3a3a6e3006d5
 
 with ids as (
   select
-    'ADMIN_USER_ID_HERE'::uuid as admin_user_id,
-    'END_USER_ID_HERE'::uuid as end_user_id
+    'e4f20a2f-98a1-4e78-af3b-0cace1d19122'::uuid as admin_user_id,
+    'f4bbb701-d5ae-42dd-9fb9-3a3a6e3006d5'::uuid as end_user_id
 )
 select * from ids;
 
@@ -45,32 +40,23 @@ select * from ids;
 -- ---------------------------------------------------------------------
 
 -- Variant 1: Columns are (user_id, role)
--- with ids as (
---   select
---     'ADMIN_USER_ID_HERE'::uuid as admin_user_id,
---     'END_USER_ID_HERE'::uuid as end_user_id
--- )
--- insert into public.user_roles (user_id, role)
--- select admin_user_id, 'admin' from ids
--- on conflict (user_id) do update set role = excluded.role;
---
--- with ids as (
---   select
---     'ADMIN_USER_ID_HERE'::uuid as admin_user_id,
---     'END_USER_ID_HERE'::uuid as end_user_id
--- )
--- insert into public.user_roles (user_id, role)
--- select end_user_id, 'officer' from ids
--- on conflict (user_id) do update set role = excluded.role;
+with ids as (
+  select
+    'e4f20a2f-98a1-4e78-af3b-0cace1d19122'::uuid as admin_user_id,
+    'f4bbb701-d5ae-42dd-9fb9-3a3a6e3006d5'::uuid as end_user_id
+)
+insert into public.user_roles (user_id, role)
+select admin_user_id, 'admin' from ids
+on conflict (user_id) do update set role = excluded.role;
 
--- Variant 2: Columns are (id, user_id, role) and id is generated
--- insert into public.user_roles (user_id, role)
--- values ('ADMIN_USER_ID_HERE'::uuid, 'admin')
--- on conflict (user_id) do update set role = excluded.role;
---
--- insert into public.user_roles (user_id, role)
--- values ('END_USER_ID_HERE'::uuid, 'officer')
--- on conflict (user_id) do update set role = excluded.role;
+with ids as (
+  select
+    'e4f20a2f-98a1-4e78-af3b-0cace1d19122'::uuid as admin_user_id,
+    'f4bbb701-d5ae-42dd-9fb9-3a3a6e3006d5'::uuid as end_user_id
+)
+insert into public.user_roles (user_id, role)
+select end_user_id, 'officer' from ids
+on conflict (user_id) do update set role = excluded.role;
 
 -- After running, verify:
--- select * from public.user_roles order by role, user_id;
+select * from public.user_roles order by role, user_id;
