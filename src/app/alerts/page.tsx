@@ -32,16 +32,17 @@ export default function AlertsPage() {
       .select(`*, visa_records(*)`);
     const { data: settings } = await supabase
       .from("app_settings")
-      .select("penalty_per_day")
+      .select("penalty_per_day, alert_threshold_days")
       .single();
     const rate = settings?.penalty_per_day || 500;
+    const threshold = settings?.alert_threshold_days || 90;
 
     if (students) {
       const actionable = students
         .map((s) => {
           const visa = s.visa_records?.[0];
           const statusInfo = visa?.expiry_date
-            ? calculateVisaStatus(visa.expiry_date, rate)
+            ? calculateVisaStatus(visa.expiry_date, rate, threshold)
             : null;
           const isExpired = statusInfo?.status === "Expired";
           const isExpiringSoon = statusInfo?.status === "Expiring Soon";
