@@ -20,7 +20,8 @@ export default function StatisticsPage() {
     async function getStats() {
       const { data: students } = await supabase
         .from("students")
-        .select(`*, visa_records(*)`);
+        .select(`*, visa_records(*)`)
+        .is("deleted_at", null);
       const { data: settings } = await supabase
         .from("app_settings")
         .select("penalty_per_day")

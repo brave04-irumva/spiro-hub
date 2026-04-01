@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { toast } from "@/lib/toast";
 import { X, UserPlus, Phone, Loader2 } from "lucide-react";
 
 interface AddStudentModalProps {
@@ -67,7 +68,7 @@ export default function AddStudentModal({
         phone_number: "+254",
       });
     } catch (error: any) {
-      alert("Registration Error: " + error.message);
+      toast("Registration Error: " + error.message, "error");
     } finally {
       setLoading(false);
     }

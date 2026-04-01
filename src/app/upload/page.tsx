@@ -30,6 +30,7 @@ export default function UploadPage() {
       complete: async (results) => {
         try {
           let count = 0;
+          let skipped = 0;
           for (const row of results.data as any) {
             // Match the headers in your CSV file
             if (!row.student_id || !row.name) continue;
@@ -49,7 +50,16 @@ export default function UploadPage() {
               .select()
               .single();
 
-            if (sErr) throw sErr;
+            if (sErr) {
+              // 23505 = unique_violation: student_id_number already exists (archived student).
+              // RLS blocks updating deleted rows for non-admins, so ON CONFLICT DO UPDATE
+              // cannot resolve the conflict, causing the unique constraint to surface.
+              if (sErr.code === "23505") {
+                skipped++;
+                continue;
+              }
+              throw sErr;
+            }
 
             // 2. Create/Update linked Visa Record
             const expiry =
@@ -70,9 +80,13 @@ export default function UploadPage() {
             if (vErr) throw vErr;
             count++;
           }
+          const msg =
+            skipped > 0
+              ? `Synced ${count} students. ${skipped} archived record(s) were skipped.`
+              : `Successfully synced ${count} students to the SPIRO system!`;
           setStatus({
             type: "success",
-            msg: `Successfully synced ${count} students to the SPIRO system!`,
+            msg,
           });
         } catch (err: any) {
           console.error(err);

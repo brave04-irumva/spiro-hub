@@ -32,7 +32,8 @@ export default function Dashboard() {
 
     const { data } = await supabase
       .from("students")
-      .select(`*, visa_records(*)`);
+      .select(`*, visa_records(*)`)
+      .is("deleted_at", null);
     setStudents(data || []);
     setFilteredStudents(data || []);
     setLoading(false);
