@@ -1,0 +1,19 @@
+ .env.example                                 |  18 [32m++[m
+ docs/admin-user-setup.md                     |  10 [32m+[m[31m-[m
+ docs/supabase-setup.md                       | 117 [32m++++++[m[31m---[m
+ src/app/alerts/page.tsx                      |  17 [32m+[m[31m-[m
+ src/app/api/send-sms/route.ts                |  11 [32m+[m[31m-[m
+ src/app/directory/page.tsx                   |  15 [32m+[m[31m-[m
+ src/app/layout.tsx                           |   2 [32m+[m
+ src/app/page.tsx                             |   3 [32m+[m[31m-[m
+ src/app/statistics/page.tsx                  |   3 [32m+[m[31m-[m
+ src/app/stats/page.tsx                       |   3 [32m+[m[31m-[m
+ src/app/student/[id]/page.tsx                | 108 [32m++++++[m[31m--[m
+ src/app/upload/page.tsx                      |  18 [32m+[m[31m-[m
+ src/components/AddStudentModal.tsx           |   3 [32m+[m[31m-[m
+ src/components/ToastContainer.tsx            |  64 [32m+++++[m
+ src/lib/supabase.ts                          |  20 [32m+[m[31m-[m
+ src/lib/toast.ts                             |  23 [32m++[m
+ supabase/migrations/0001_rls_softdelete.sql  | 367 [32m+++++++++++++++++++++++++++[m
+ supabase/migrations/0002_bootstrap_roles.sql |  49 [32m++++[m
+ 18 files changed, 769 insertions(+), 82 deletions(-)
