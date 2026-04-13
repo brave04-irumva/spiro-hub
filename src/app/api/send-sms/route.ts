@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 const AfricasTalking = require("africastalking");
 
-const at = AfricasTalking({
-  apiKey: process.env.AT_API_KEY,
-  username: process.env.AT_USERNAME,
-});
-
 export async function POST(req: Request) {
   try {
     const { to, message } = await req.json();
+
+    // Initialize lazily so missing env vars don't crash the build
+    const at = AfricasTalking({
+      apiKey: process.env.AT_API_KEY,
+      username: process.env.AT_USERNAME,
+    });
 
     // Ensure phone number starts with + (e.g., +254...)
     const sms = at.SMS;

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { calculateVisaStatus } from "@/lib/visa-logic";
 import { useRole } from "@/hooks/useRole";
+import { toast } from "@/lib/toast";
 import {
   Bell,
   Mail,
@@ -29,7 +30,8 @@ export default function AlertsPage() {
     setLoading(true);
     const { data: students } = await supabase
       .from("students")
-      .select(`*, visa_records(*)`);
+      .select(`*, visa_records(*)`)
+      .is("deleted_at", null);
     const { data: settings } = await supabase
       .from("app_settings")
       .select("penalty_per_day, alert_threshold_days")
@@ -100,7 +102,7 @@ export default function AlertsPage() {
 
   const triggerSMS = async (student: any) => {
     if (!student.phone_number) {
-      alert("Error: No phone number recorded for this student.");
+      toast("No phone number recorded for this student.", "error");
       return;
     }
 
@@ -119,13 +121,16 @@ export default function AlertsPage() {
 
       const result = await res.json();
       if (result.success) {
-        alert("SMS successfully sent via Africa's Talking!");
+        toast("SMS successfully sent via Africa's Talking!", "success");
         setSelectedStudent(null);
       } else {
-        alert(`SMS Failed: ${result.error}. Ensure number is in +254 format.`);
+        toast(
+          `SMS Failed: ${result.error}. Ensure number is in +254 format.`,
+          "error",
+        );
       }
-    } catch (error) {
-      alert("Network Error: Could not connect to SMS Gateway.");
+    } catch {
+      toast("Network Error: Could not connect to SMS Gateway.", "error");
     } finally {
       setSmsSending(false);
     }

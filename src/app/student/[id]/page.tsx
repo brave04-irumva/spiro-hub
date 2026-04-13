@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useRole } from "@/hooks/useRole";
+import { toast } from "@/lib/toast";
 import {
   ArrowLeft,
   Save,
@@ -19,6 +21,7 @@ import {
   FileCheck,
   XCircle,
   Phone,
+  ArchiveRestore,
 } from "lucide-react";
 
 const OFFICIAL_REQUIREMENTS = [
@@ -42,7 +45,10 @@ const STAGES = [
 
 export default function StudentDetails() {
   const { id } = useParams();
+  const router = useRouter();
+  const { isAdmin } = useRole();
   const [student, setStudent] = useState<any>(null);
+  const [notFound, setNotFound] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [attachments, setAttachments] = useState<any[]>([]);
   const [docRecords, setDocRecords] = useState<any[]>([]);
@@ -64,7 +70,13 @@ export default function StudentDetails() {
       .from("students")
       .select(`*, visa_records(*)`)
       .eq("id", id)
-      .single();
+      .maybeSingle();
+
+    if (!s) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     const { data: h } = await supabase
       .from("visa_history")
       .select("*")
@@ -141,11 +153,27 @@ export default function StudentDetails() {
       student_id: id,
       status: stage,
       notes: `Manual Update: Contact info refreshed and stage set to ${stage}.`,
+      performed_by: (await supabase.auth.getUser()).data.user?.id ?? null,
     });
 
     setSaving(false);
-    alert("SPIRO Records & Audit Trail Synchronized.");
+    toast("SPIRO Records & Audit Trail Synchronized.", "success");
     loadData();
+  };
+
+  const handleRestore = async () => {
+    if (!isAdmin) return;
+    if (!confirm("Restore this archived student record?")) return;
+    const { error } = await supabase
+      .from("students")
+      .update({ deleted_at: null })
+      .eq("id", id);
+    if (!error) {
+      toast("Student record restored successfully.", "success");
+      loadData();
+    } else {
+      toast("Error restoring record: " + error.message, "error");
+    }
   };
 
   const handleFileUpload = async (e: any) => {
@@ -166,8 +194,54 @@ export default function StudentDetails() {
       </div>
     );
 
+  if (notFound)
+    return (
+      <div className="p-20 text-center h-screen flex flex-col items-center justify-center gap-6">
+        <ShieldAlert size={64} className="text-gray-300" />
+        <h2 className="text-2xl font-black text-gray-500 uppercase tracking-widest">
+          Record Not Found
+        </h2>
+        <p className="text-gray-400 font-medium text-sm">
+          This student record does not exist or has been archived.
+        </p>
+        <button
+          onClick={() => router.push("/directory")}
+          className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black hover:bg-blue-700 transition"
+        >
+          <ArrowLeft size={16} /> Return to Directory
+        </button>
+      </div>
+    );
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 min-h-screen pb-20 bg-gray-50/30">
+      {/* Archived banner */}
+      {student.deleted_at && (
+        <div className="flex items-center justify-between bg-amber-50 border-2 border-amber-300 rounded-3xl px-8 py-5">
+          <div className="flex items-center gap-3 text-amber-700">
+            <ShieldAlert size={22} />
+            <div>
+              <p className="font-black uppercase text-sm tracking-wide">
+                Record Archived
+              </p>
+              <p className="text-xs font-medium opacity-80">
+                Archived on{" "}
+                {new Date(student.deleted_at).toLocaleDateString("en-GB")}. This
+                record is hidden from normal views.
+              </p>
+            </div>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={handleRestore}
+              className="flex items-center gap-2 bg-amber-600 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase hover:bg-amber-700 transition"
+            >
+              <ArchiveRestore size={16} /> Restore Record
+            </button>
+          )}
+        </div>
+      )}
+
       <header className="flex items-center justify-between">
         <button
           onClick={() => window.history.back()}
@@ -175,19 +249,21 @@ export default function StudentDetails() {
         >
           <ArrowLeft size={16} /> Return to Dashboard
         </button>
-        <button
-          onClick={handleUpdate}
-          disabled={saving}
-          className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black flex items-center gap-3 hover:bg-blue-700 transition shadow-xl shadow-blue-100"
-        >
-          {saving ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <>
-              <Save size={20} /> Update & Log Action
-            </>
-          )}
-        </button>
+        {!student.deleted_at && (
+          <button
+            onClick={handleUpdate}
+            disabled={saving}
+            className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black flex items-center gap-3 hover:bg-blue-700 transition shadow-xl shadow-blue-100"
+          >
+            {saving ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <>
+                <Save size={20} /> Update & Log Action
+              </>
+            )}
+          </button>
+        )}
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

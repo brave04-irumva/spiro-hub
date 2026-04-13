@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { calculateVisaStatus } from "@/lib/visa-logic";
 import { useRole } from "@/hooks/useRole";
+import { toast } from "@/lib/toast";
 import {
   Search,
   UserCircle,
@@ -26,7 +27,8 @@ export default function DirectoryPage() {
     setLoading(true);
     const { data: students } = await supabase
       .from("students")
-      .select(`*, visa_records(*)`);
+      .select(`*, visa_records(*)`)
+      .is("deleted_at", null);
     const { data: settings } = await supabase
       .from("app_settings")
       .select("penalty_per_day")
@@ -91,17 +93,20 @@ export default function DirectoryPage() {
     if (!isAdmin) return;
     if (
       !confirm(
-        "Are you sure? This will permanently remove the student and all records.",
+        "Archive this student? Their record will be hidden from the system but retained for audit purposes.",
       )
     )
       return;
 
-    const { error } = await supabase.from("students").delete().eq("id", id);
+    const { error } = await supabase
+      .from("students")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
     if (!error) {
-      alert("Student record purged.");
+      toast("Student record archived successfully.", "success");
       loadData();
     } else {
-      alert("Error: " + error.message);
+      toast("Error archiving record: " + error.message, "error");
     }
   };
 
